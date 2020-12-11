@@ -31,10 +31,10 @@ app.post('/api/submitdata', function (req, res) {
         scriptPath: __dirname,
         args: [req.files.districtData.tempFilePath, req.files.labData.tempFilePath]
     };
-    // PythonShell.run('script.py', options, function (err, result) {
-    //     if (err) throw err;
-    //     res.sendFile(__dirname + '/output.json')
-    // }); 
+    PythonShell.run('script.py', options, function (err, result) {
+        if (err) throw err;
+        res.sendFile(__dirname + '/output.json')
+    }); 
     res.send('hello')
 })
 
