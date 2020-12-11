@@ -20,6 +20,10 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.get('/', function(req, res) {
+    res.send("hello world");
+});
+
 app.post('/api/submitdata', function (req, res) {
     let options = {
         mode: 'text',
