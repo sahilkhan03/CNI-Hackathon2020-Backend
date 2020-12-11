@@ -35,7 +35,6 @@ app.post('/api/submitdata', function (req, res) {
         if (err) throw err;
         res.sendFile(__dirname + '/output.json')
     }); 
-    res.send('hello')
 })
 
 app.listen(PORT, function () {
