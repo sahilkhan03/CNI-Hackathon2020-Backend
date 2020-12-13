@@ -167,7 +167,7 @@ for i in district_rem.keys():
             x = min(district_rem[i], labs_excess[j['id']])
             district_rem[i] -= x
             labs_excess[j['id']] -= x
-            transfers_dict[tuple([i, j])] += x
+            transfers_dict[tuple([i, j['id']])] += x
     
     if district_rem[i]: #Allocate rest of samples to headquarters
         output.append({'transfer_type': 1, 'source': i, 'destination': i, 'samples_transferred': district_rem[i]})
