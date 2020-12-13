@@ -29,7 +29,7 @@ app.post('/api/submitdata', function (req, res) {
     };
     PythonShell.run('script.py', options, function (err, result) {
         if (err) res.status(503).json({
-            message: err
+            message: "Invalid Files!"
         });
         res.sendFile(__dirname + '/output.json')
     }); 
