@@ -28,7 +28,9 @@ app.post('/api/submitdata', function (req, res) {
         args: [req.files.districtData.tempFilePath, req.files.labData.tempFilePath]
     };
     PythonShell.run('script.py', options, function (err, result) {
-        if (err) throw err;
+        if (err) res.status(503).json({
+            message: err
+        });
         res.sendFile(__dirname + '/output.json')
     }); 
 })
