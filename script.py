@@ -10,11 +10,14 @@ def csv_to_dict(file):
 districts = csv_to_dict(sys.argv[1])
 labs = csv_to_dict(sys.argv[2])
 
+districts_dic = {}
 for i in districts:
     i['labs'] = [j for j in labs if i['district_id'] == j['district_id']]
     i['labs'].sort(key = lambda x: (x['lab_type']))
+    districts_dic[i['district_id']] = i
 
 labs_rem = {}
+labs_excess = {}
 district_rem = {}
 labs_loc = {}
 district_loc = {}
@@ -23,8 +26,9 @@ for i in districts:
     district_loc[i['district_id']] = {'lat': float(i['lat']), 'lon': float(i['lon'])} 
 for i in labs:
     labs_rem[i['id']] = int(i['capacity']) - int(i['backlogs']) 
+    labs_excess[i['id']] = 100
     labs_loc[i['id']] = {'lat': float(i['lat']), 'lon': float(i['lon']), 'lab_type': int(i['lab_type'])}
-
+    
 output = []
 for i in districts:
     for j in i['labs']:
@@ -95,8 +99,13 @@ def calc_cost(dist_id, cur_labs):
         if not rem:
             break
     centroid = calc_centroid(used)
-    return (cost + rem * 10000.0 + 1000.0*calc_dis(centroid[0], centroid[1], district_loc[dist_id]['lat'], district_loc[dist_id]['lon']), tuple(used))
-
+    for i in districts_dic[dist_id]['labs']:
+        cost += min(rem, labs_excess[i['id']]) * 5000
+        rem -= min(rem, labs_excess[i['id']])
+        if not rem:
+            break
+    return (cost + rem * 10000.0 + 1000.0 * calc_dis(centroid[0], centroid[1], district_loc[dist_id]['lat'], district_loc[dist_id]['lon']), tuple(used))
+    
 def remove_keys(to_rem):
     keys_rem = []
     for i in lab_sets.keys():
@@ -125,6 +134,16 @@ for i in district_rem.keys():
         output.append({'transfer_type': 0, 'source': i, 'destination': j, 'samples_transferred': x})
         if not labs_rem[j]:
             to_rem.append(int(j))
+    
+    for j in districts_dic[dist_id]['labs']:
+        if not district_rem[i]:
+            break
+        if labs_excess[j['id']]:
+            x = min(district_rem[i], labs_excess[j['id']])
+            district_rem[i] -= x
+            labs_excess[j['id']] -= x
+            output.append({'transfer_type': 0, 'source': i, 'destination': j['id'], 'samples_transferred': x})
+    
     if district_rem[i]:
         output.append({'transfer_type': 1, 'source': i, 'destination': i, 'samples_transferred': district_rem[i]})
     remove_keys(to_rem)
