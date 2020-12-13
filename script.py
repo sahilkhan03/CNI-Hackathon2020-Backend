@@ -31,19 +31,23 @@ for i in labs:
     labs_loc[i['id']] = {'lat': float(i['lat']), 'lon': float(i['lon']), 'lab_type': int(i['lab_type'])}
     
 output = [] #Store output
+transfers_dict = {} #Store total samples transferred from district i to lab j
+for i in districts:
+    for j in labs:
+        transfers_dict[tuple([i['district_id'], j['id']])] = 0 #Initiate samples tranferred with 0
 
 #For each district, distribute all samples to its lab order by lab_type(first govt then private labs)
 for i in districts:
     for j in i['labs']:
         if district_rem[i['district_id']] <= labs_rem[j['id']]:
             labs_rem[j['id']] -= district_rem[i['district_id']]
-            output.append({'transfer_type': 0, 'source': i['district_id'], 'destination': j['id'], 'samples_transferred': district_rem[i['district_id']]})
+            transfers_dict[tuple([i['district_id'], j['id']])] += district_rem[i['district_id']] 
             del district_rem[i['district_id']] #Remove from dictionary if all samples allocated
             if not labs_rem[j['id']]:
                 del labs_rem[j['id']]
             break
         district_rem[i['district_id']] -= labs_rem[j['id']]
-        output.append({'transfer_type': 0, 'source': i['district_id'], 'destination': j['id'], 'samples_transferred': labs_rem[j['id']]})
+        transfers_dict[tuple([i['district_id'], j['id']])] += labs_rem[j['id']]
         del labs_rem[j['id']] #Remove from dictionary if total samples transferred to lab is equal to its capacity 
 
 #Calculate distance (in kms) between two locations
@@ -151,8 +155,8 @@ for i in district_rem.keys():
         j = str(j)
         x = min(district_rem[i], labs_rem[j]) #Samples to be allocated
         district_rem[i] -= x 
-        labs_rem[j] -= x 
-        output.append({'transfer_type': 0, 'source': i, 'destination': j, 'samples_transferred': x})
+        labs_rem[j] -= x
+        transfers_dict[tuple([i, j])] += x
         if not labs_rem[j]:
             to_rem.append(int(j)) #Add to "to_rem" if no space left in current lab
     
@@ -163,11 +167,16 @@ for i in district_rem.keys():
             x = min(district_rem[i], labs_excess[j['id']])
             district_rem[i] -= x
             labs_excess[j['id']] -= x
-            output.append({'transfer_type': 0, 'source': i, 'destination': j['id'], 'samples_transferred': x})
+            transfers_dict[tuple([i, j])] += x
     
     if district_rem[i]: #Allocate rest of samples to headquarters
         output.append({'transfer_type': 1, 'source': i, 'destination': i, 'samples_transferred': district_rem[i]})
     remove_keys(to_rem)
+
+#Generate output from transfers_dict
+for i in transfers_dict.keys():
+    if transfers_dict[i]:
+        output.append({'transfer_type': 0, 'source': i[0], 'destination': i[1], 'samples_transferred': transfers_dict[i]})
 
 #Create JSON output
 import json 
