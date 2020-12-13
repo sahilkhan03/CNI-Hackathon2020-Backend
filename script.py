@@ -135,7 +135,7 @@ for i in district_rem.keys():
         if not labs_rem[j]:
             to_rem.append(int(j))
     
-    for j in districts_dic[dist_id]['labs']:
+    for j in districts_dic[i]['labs']:
         if not district_rem[i]:
             break
         if labs_excess[j['id']]:
