@@ -28,7 +28,7 @@ app.post('/api/submitdata', function (req, res) {
         args: [req.files.districtData.tempFilePath, req.files.labData.tempFilePath]
     };
     PythonShell.run('script.py', options, function (err, result) {
-        if (err) res.status(503).json({
+        if (err) res.json({
             message: "Invalid Files!"
         });
         res.sendFile(__dirname + '/output.json')
